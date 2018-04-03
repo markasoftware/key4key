@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS circles;
+DROP TABLE IF EXISTS exchanges;

@@ -1,0 +1,35 @@
+{
+  "name": "key4key",
+  "version": "0.1.0",
+  "description": "Automated key swapper for circleoftrust",
+  "main": "index.js",
+  "scripts": {
+    "test": "tape tests/*.js",
+    "build": "make"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com/markasoftware/key4key"
+  },
+  "author": "Mark Polyakov",
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "browserify": "^16.1.1",
+    "knex": "^0.14.4",
+    "koa": "^2.5.0",
+    "koa-body": "^2.5.0",
+    "koa-router": "^7.4.0",
+    "koa-session": "^5.8.1",
+    "koa-static": "^4.0.2",
+    "mithril": "^1.1.6",
+    "p-limit": "^1.2.0",
+    "reddit-oauth": "^1.1.1",
+    "request": "^2.85.0",
+    "request-promise": "^4.2.2",
+    "request-promise-native": "^1.0.5",
+    "sass": "^1.1.1",
+    "snoowrap": "^1.15.2",
+    "sqlite3": "^4.0.0",
+    "tape": "^4.9.0"
+  }
+}
