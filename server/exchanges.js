@@ -26,7 +26,7 @@ const exchanges = {
 	// str user => [ { user, pw, created } ]
 	get: user =>
 		db('exchanges')
-			.select('circles.user', 'circles.pw', 'exchanges.created')
+			.select('circles.user', 'circles.pw', 'circles.betrayed', 'exchanges.created')
 			.join('circles', function() {
 				this.on('exchanges.initiator', 'circles.user')
 					.orOn('exchanges.acceptor', 'circles.user');

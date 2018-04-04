@@ -52,10 +52,10 @@ const register = async ctx => {
 		ctx.state.errorRegister = 'request format error (user, pw, acpw not simple strings)';
 		return;
 	}
-	const eligible = await circles.checkEligibility(reqBody.user);
+	const eligible = await circles.checkEligibility(reqBody.user, reqBody.pw);
 	if (!eligible) {
 		debug('Not eligible');
-		ctx.state.errorRegister = 'Account not eligible for registration. Either you do not have a circle, you entered the incorrect circle password, or your circle was betrayed, or you are a traitor yourself!';
+		ctx.state.errorRegister = 'Account not eligible for registration. Either you do not have a circle, you entered the incorrect circle password, or you are a traitor!';
 		return;
 	}
 	await circles.create(Object.assign({
@@ -85,7 +85,7 @@ const exchangeTimers = {};
 
 const exchange = async ctx => {
 	if (exchangeTimers[ctx.session.user] > Date.now() - config.exchangeSpacing) {
-		ctx.state.errorMatch = `You must wait a ${config.exchangeSpacing / 1000} seconds between exchanges`;
+		ctx.state.errorMatch = `You must wait ${config.exchangeSpacing / 1000} seconds between exchanges`;
 		return;
 	}
 	const exchanged = await exchanges.initiate(ctx.session.user);

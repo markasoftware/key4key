@@ -15,9 +15,8 @@ r.getCircleInfo = async user => {
 	return {
 		murderer: flair.includes('∅'),
 		betrayed: circleJson.is_betrayed,
-		size: parseInt(flair),
-		// -1 means unknown :( because account is deleted when you become betrayed, this shouldn't matter much
-		joined: circleJson.is_betrayed ? -1 : parseInt(flair.slice(flair.indexOf(' '))),
+		size: circleJson.is_betrayed ? 0 : parseInt(flair),
+		joined: parseInt(flair.slice(flair.indexOf(' '))),
 		id: circleJson.name,
 	};
 };

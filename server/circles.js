@@ -1,4 +1,5 @@
 const Debug = require('debug');
+const config = require('../config');
 const reddit = require('./reddit-api');
 const db = require('./db');
 
@@ -30,8 +31,8 @@ const circles = {
 	},
 	// checks whether a circle is eligible, i.e it is not a murderer,
 	// has not been betrayed, and exists
-	// user => { size, karma, age} | false
-	checkEligibility: async (user, attemptUnlock = false) => {
+	// user => { size, joined, betrayed, karma, age} | false
+	checkEligibility: async (user, pw = false) => {
 		const debug = Debug('key4key:circles:checkEligibility');
 		let circleInfo;
 		try {
@@ -46,12 +47,13 @@ const circles = {
 		}
 		debug(`Circle exists, murderer: ${circleInfo.murderer}`);
 		debug(`betrayed: ${circleInfo.betrayed}`);
-		if(circleInfo.murderer || circleInfo.betrayed) {
+		if(circleInfo.murderer || (!config.allowBetrayed && circleInfo.betrayed)) {
+			debug('not eligible due to murderer or betrayed status');
 			return false;
 		}
-		if (attemptUnlock) {
+		if (pw && !circleInfo.betrayed) {
 			debug('Attempting unlock...');
-			if (!(await reddit.unlockCircle(circleInfo.id, reqBody.pw))) {
+			if (!(await reddit.unlockCircle(circleInfo.id, pw))) {
 				debug('Unlock failed!');
 				return false;
 			}
@@ -65,6 +67,7 @@ const circles = {
 		return {
 			size: circleInfo.size,
 			joined: circleInfo.joined,
+			betrayed: circleInfo.betrayed,
 			karma,
 			age,
 		};

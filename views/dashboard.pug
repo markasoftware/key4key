@@ -13,7 +13,7 @@ block leftpanel
 		input#reqage(name='reqage' type='number' value=Math.floor((Date.now()/1000-reqage)/86400))
 		label(for='reqsize') Circle Size
 		input#reqsize(name='reqsize' type='number' value=reqsize)
-		label(for='reqjoined') Joined Circles
+		label(for='reqjoined') Joined Circles. Set to 0 to allow trades with betrayed players.
 		input#reqjoined(name='reqjoined' type='number' value=reqjoined)
 		include includes/csrf
 		button.pure-button.pure-button-primary(name='action' value='changereq' type='submit') Update settings
@@ -37,5 +37,10 @@ block rightpanel
 					div.user
 						| User:&nbsp;
 						a(href=`https://www.reddit.com/user/${exchange.user}/circle/embed`)= exchange.user
-					div.pw Password: #{exchange.pw}
+					div.pw Password:&nbsp;
+						if exchange.betrayed
+							em Betrayed
+						else
+							| #{exchange.pw}
+						
 					div.created Created: #{Math.floor((Date.now()/1000-exchange.created)/(60*60))} hours ago

@@ -10,6 +10,8 @@ module.exports = {
 	minRefreshGap: 300000,
 	listExchangeLimit: 50,
 	exchangeSpacing: 120000,
+	// allow betrayed or size 0 circles to join?
+	allowBetrayed: true,
 	dbPath: '/tmp/key4key.sqlite',
 	// cookie signing keys
 	keys: [ 'correct', 'horse', 'battery', 'staple' ],
