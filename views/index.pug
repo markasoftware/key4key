@@ -9,10 +9,10 @@ block leftpanel
 		input#user(name='user')
 		label(for='pw') Circle Password (not Reddit)
 		input#pw(name='pw' type='password')
-		label(for='acpw') Key4Key password (not Reddit)
+		label(for='acpw') Set key4key password
 		input#acpw(name='acpw' type='password')
 		include includes/csrf
-		button.pure-button.pure-button-primary(type='submit' name='action' value='register') Login
+		button.pure-button.pure-button-primary(type='submit' name='action' value='register') Register
 block rightpanel
 	h3 Circle Login
 	form.pure-form.pure-form-stacked(method='POST')
