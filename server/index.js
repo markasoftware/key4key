@@ -79,10 +79,19 @@ const login = async ctx => {
 	ctx.session.user = reqBody.user;
 };
 
+// TODO: move this into DB
+const exchangeTimers = {};
+
 const exchange = async ctx => {
+	if (exchangeTimers[ctx.session.user] > Date.now() - config.exchangeSpacing) {
+		ctx.state.errorMatch = 'You must wait a bit longer before doing that again.';
+		return;
+	}
 	const exchanged = await exchanges.initiate(ctx.session.user);
+	exchangeTimers[ctx.session.user] = Date.now();
 	if (!exchanged) {
 		ctx.state.errorMatch = 'No pair found :( Try lowering your limits or trying again later';
+		return;
 	}
 };
 

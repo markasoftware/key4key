@@ -9,6 +9,7 @@ module.exports = {
 	// will not refresh an account if it has been updated within this amount of time
 	minRefreshGap: 300000,
 	listExchangeLimit: 50,
+	exchangeSpacing: 120000,
 	dbPath: '/tmp/key4key.sqlite',
 	// cookie signing keys
 	keys: [ 'correct', 'horse', 'battery', 'staple' ],
