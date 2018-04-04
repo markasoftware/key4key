@@ -15,6 +15,7 @@
   "license": "AGPL-3.0",
   "dependencies": {
     "browserify": "^16.1.1",
+    "debug": "^3.1.0",
     "knex": "^0.14.4",
     "koa": "^2.5.0",
     "koa-body": "^2.5.0",

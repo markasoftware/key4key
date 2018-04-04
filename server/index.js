@@ -3,6 +3,7 @@ const koaStatic = require('koa-static');
 const koaBody = require('koa-body');
 const koaSession = require('koa-session');
 const koaRouter = require('koa-router');
+const Debug = require('debug');
 const config = require('../config');
 const circles = require('./circles');
 const reddit = require('./reddit-api');
@@ -26,70 +27,58 @@ const loggedIn = async (ctx, next) => {
 /*
  * request:
  * - user
- * - pw
+ * - pw (circle)
+ * - acpw (account)
+ * 
+ * response: HTTP code only
+ * =201: ok, and you're logged in
+ * =418: You are not eligible for an account
+ */
+router.post('/api/circles', async ctx => {
+	const debug = Debug('key4key:create');
+	const reqBody = ctx.request.body;
+	if (!isSimpleString(reqBody.user) ||
+		!isSimpleString(reqBody.pw) ||
+		!isSimpleString(reqBody.acpw)) {
+		debug('Not simple strings');
+		ctx.throw(400, 'requires user, pw, and acpw all to be simple strings');
+	}
+	const eligible = await circles.checkEligibility(reqBody.user);
+	if (!eligible) {
+		ctx.throw(418, 'account not eligible');
+	}
+	await circles.create(Object.assign({
+		user: reqBody.user,
+		pw: reqBody.pw,
+		acpw: reqBody.acpw,
+	}, eligible));
+	ctx.session.user = reqBody.user;
+	ctx.status = 201;
+});
+
+/*
+ * request:
+ * - user
+ * - acpw
  * 
  * response: HTTP code only
  * =200: you're logged in
- * =201: just created!
  * =401: Auth failed
- * =404: reddit acc does not exist
  * =418: circle key is incorrect or other similar error
  * 
  */
 router.post('/api/login', async ctx => {
+	const debug = Debug('key4key:login');
 	const reqBody = ctx.request.body;
-	if (!isSimpleString(reqBody.user) || !isSimpleString(reqBody.pw)) {
+	if (!isSimpleString(reqBody.user) || !isSimpleString(reqBody.acpw)) {
 		ctx.throw(400, 'make sure user and pw exist and are simple strings');
 	}
-	const authed = await circles.checkAuth(reqBody.user, reqBody.pw);
-	if (authed === 'fail') {
+	const authed = await circles.checkAuth(reqBody.user, reqBody.acpw);
+	if (!authed) {
 		ctx.throw(401, 'invalid pw');
 	}
-	if (authed === 'missing') {
-		/*
-		* Create circle
-		* 
-		* 1. Check that the circle exists and get size
-		* 2. Check that the pw is correct
-		* 3. Fetch user karma and age
-		* 4. Insert into DB
-		*/
-		// 1.
-		let circleInfo;
-		try {
-			circleInfo = await reddit.getCircleInfo(reqBody.user);
-		} catch (e) {
-			if (e.error.error === 404) {
-				ctx.throw(404, 'reddit account does not exist');
-			}
-			throw e;
-		}
-		if(circleInfo.murderer) {
-			ctx.throw(418, 'murderer');
-		}
-		if (circleInfo.betrayed) {
-			ctx.throw(418, 'betrayed');
-		}
-		// 2.
-		if (!(await reddit.unlockCircle(circleInfo.id, reqBody.pw))) {
-			ctx.throw(418, 'Incorrect circle password');
-		}
-		// 3.
-		const user = reddit.getUser(reqBody.user);
-		const karma = (await user.link_karma) + (await user.comment_karma);
-		const age = await user.created_utc;
-		// 4.
-		await circles.create({
-			user: reqBody.user,
-			pw: reqBody.pw,
-			karma,
-			age,
-			size: circleInfo.size,
-		});
-	}
-	// authed === 'ok' defaults to here as well...
-	ctx.status = 200;
 	ctx.session.user = reqBody.user;
+	ctx.status = 200;
 });
 
 /*
@@ -118,10 +107,7 @@ router.put('/api/circles', async ctx => {
 		ctx.throw(400, 'reqkarma, reqage, and reqsize are all required and need to be numbers');
 	}
 	const curCircle = await circles.get(ctx.session.user);
-	if (curCircle.initialized) {
-		ctx.throw(303, 'already initialized');
-	}
-	await curCircle.initialize(ctx.session.user, {
+	await curCircle.update(ctx.session.user, {
 		reqkarma: reqBody.reqkarma,
 		reqage: reqBody.reqage,
 		reqsize: reqBody.reqsize,
@@ -129,6 +115,22 @@ router.put('/api/circles', async ctx => {
 	ctx.status = 200;
 });
 
-app.use(router.routes());
+// update user info cron
+setInterval(async () => {
+	const debug = Debug('key4key:cron');
+	const stalestInfo = await circles.findStalest();
+	debug(`Stalest: ${JSON.stringify(stalestInfo)}`);
+	if (!stalestInfo) {
+		debug('No rows');
+		return;
+	}
+	if (Date.now() - stalestInfo.refreshed * 1000 < config.minRefreshGap) {
+		debug(`Above min refresh gap of ${config.minRefreshGap}, skipping`);
+		return;
+	}
+	debug('Performing update...');
+	await circles.autoUpdate(stalest);
+}, config.refreshInterval);
 
+app.use(router.routes());
 app.listen(config.port);

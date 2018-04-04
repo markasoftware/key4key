@@ -1,19 +1,21 @@
 CREATE TABLE circles (
-	user VARCHAR(255) PRIMARY KEY,
+	user VARCHAR(255) PRIMARY KEY NOT NULL,
 	pw VARCHAR(255) NOT NULL,
-	karma INT NOT NULL,
-	reqkarma INT,
-	age INT NOT NULL,
-	reqage INT,
-	size INT NOT NULL,
-	reqsize INT,
-	-- bool
-	initialized INT NOT NULL DEFAULT 0,
-	refreshed TIME NOT NULL
+	-- account password
+	acpw VARCHAR(255) NOT NULL,
+	karma INTEGER NOT NULL, -- DEFAULT 0,
+	reqkarma INTEGER NOT NULL DEFAULT 0,
+	age INTEGER NOT NULL, -- DEFAULT 9999999999999999,
+	reqage INTEGER NOT NULL DEFAULT 9999999999999999,
+	size INTEGER NOT NULL, -- DEFAULT 0,
+	reqsize INTEGER NOT NULL DEFAULT 0,
+	refreshed INTEGER NOT NULL -- DEFAULT 0,
 );
 CREATE TABLE exchanges (
-	initiator VARCHAR(255) NOT NULL REFERENCES circles(user),
-	acceptor VARCHAR(255) NOT NULL REFERENCES circles(user),
-	created INT NOT NULL,
+	meow INTEGER PRIMARY KEY AUTOINCREMENT,
+	-- commenting out references for crappy account deletion logic
+	initiator VARCHAR(255) NOT NULL, --REFERENCES circles(user),
+	acceptor VARCHAR(255) NOT NULL, --REFERENCES circles(user),
+	created INTEGER NOT NULL,
 	status VARCHAR(255) NOT NULL
 );
