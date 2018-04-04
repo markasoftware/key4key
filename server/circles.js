@@ -34,6 +34,11 @@ const circles = {
 	// user => { size, joined, betrayed, karma, age} | false
 	checkEligibility: async (user, pw = false) => {
 		const debug = Debug('key4key:circles:checkEligibility');
+		debug(`Checking eligibility for ${user}`);
+		if (config.blacklist.includes(user)) {
+			debug('blacklisted');
+			return false;
+		}
 		let circleInfo;
 		try {
 			debug(`Getting circle info for ${user}`);

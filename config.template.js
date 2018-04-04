@@ -13,6 +13,7 @@ module.exports = {
 	// allow betrayed or size 0 circles to join?
 	allowBetrayed: true,
 	dbPath: '/tmp/key4key.sqlite',
+	blacklist: ['spez'],
 	// cookie signing keys
 	keys: [ 'correct', 'horse', 'battery', 'staple' ],
 };
