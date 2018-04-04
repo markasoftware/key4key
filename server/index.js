@@ -84,7 +84,7 @@ const exchangeTimers = {};
 
 const exchange = async ctx => {
 	if (exchangeTimers[ctx.session.user] > Date.now() - config.exchangeSpacing) {
-		ctx.state.errorMatch = 'You must wait a bit longer before doing that again.';
+		ctx.state.errorMatch = `You must wait a ${config.exchangeSpacing / 1000} seconds between exchanges`;
 		return;
 	}
 	const exchanged = await exchanges.initiate(ctx.session.user);
