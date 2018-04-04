@@ -75,6 +75,7 @@ const login = async ctx => {
 	const authed = await circles.checkAcAuth(reqBody.user, reqBody.acpw);
 	if (!authed) {
 		ctx.state.errorLogin = 'authentication failure, check your password';
+		return;
 	}
 	ctx.session.user = reqBody.user;
 };

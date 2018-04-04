@@ -7,6 +7,7 @@ const db = require('./db');
 const circles = {
 	// str name -> str acpw => bool
 	checkAcAuth: async (user, acpw) => {
+		const debug = Debug('key4key:circles:checkAcAuth');
 		const dbRes = await db('circles').select('user')
 			.where('user', user)
 			.where('acpw', acpw);
