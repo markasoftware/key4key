@@ -55,7 +55,7 @@ const register = async ctx => {
 	const eligible = await circles.checkEligibility(reqBody.user);
 	if (!eligible) {
 		debug('Not eligible');
-		ctx.state.errorRegister = 'Account not eligible for registration. Either you do not have a circle, your circle was betrayed, or you are a traitor yourself!';
+		ctx.state.errorRegister = 'Account not eligible for registration. Either you do not have a circle, you entered the incorrect circle password, or your circle was betrayed, or you are a traitor yourself!';
 		return;
 	}
 	await circles.create(Object.assign({
@@ -66,6 +66,19 @@ const register = async ctx => {
 	ctx.session.user = reqBody.user;
 };
 
+const login = async ctx => {
+	const debug = Debug('key4key:login');
+	const reqBody = ctx.request.body;
+	if (!isSimpleString(reqBody.user) || !isSimpleString(reqBody.acpw)) {
+		ctx.state.errorLogin = 'invalid request (user and acpw simple strings';
+	}
+	const authed = await circles.checkAcAuth(reqBody.user, reqBody.acpw);
+	if (!authed) {
+		ctx.state.errorLogin = 'authentication failure, check your password';
+	}
+	ctx.session.user = reqBody.user;
+};
+
 const exchange = async ctx => {
 	await exchanges.initiate(ctx.session.user);
 	// TODO: message if it didn't happen or whatever
@@ -73,6 +86,13 @@ const exchange = async ctx => {
 
 const render = async (ctx, next) => {
 	const debug = Debug('key4key:render');
+	// make sure account exists, otherwise kick 'em out
+	if (ctx.session.user) {
+		const circlesRes = await circles.get(ctx.session.user);
+		if (circlesRes.length === 0) {
+			ctx.session.user = null;
+		}
+	}
 	await next();
 	if (ctx.session.user) {
 		const circle = await circles.get(ctx.session.user);
@@ -95,6 +115,12 @@ router.post('/', render, async ctx => {
 		case 'login':
 			await login(ctx);
 			break;
+	}
+	// the ones beyond this point need auth
+	if (!ctx.session.user) {
+		return;
+	}
+	switch (ctx.request.body.action) {
 		case 'changereq':
 			await updateAccount(ctx);
 			break;
@@ -102,7 +128,7 @@ router.post('/', render, async ctx => {
 			await exchange(ctx);
 			break;
 		case 'logout':
-			ctx.session = null;
+			ctx.session.user = null;
 			break;
 	}
 });

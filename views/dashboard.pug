@@ -17,6 +17,8 @@ block leftpanel
 		input#reqjoined(name='reqjoined' type='number' value=reqjoined)
 		include includes/csrf
 		button.pure-button.pure-button-primary(name='action' value='changereq' type='submit') Update settings
+	form.pure-form.pure-form-stacked(method='POST')
+		button.pure-button(type='submit' name='action' value='logout') Logout
 
 block rightpanel
 	h3 Create new match

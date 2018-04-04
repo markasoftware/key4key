@@ -5,10 +5,13 @@ html
 		link(rel='stylesheet' href='https://unpkg.com/purecss@1.0.0/build/pure-min.css' crossorigin='anonymous')
 		link(rel='stylesheet' href='https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css' crossorigin='anonymous')
 		link(rel='stylesheet' href='index.css')
+		meta(name='viewport' content='width=device-width, initial-scale=1')
 	body
 		header
-			span.logo-large Key4Key
-			div.logo-small by markasoftware
+			a.logo-large(href='https://github.com/markasoftware/key4key') Key4Key
+			span.logo-small
+			| by&nbsp;
+			a(href='https://reddit.com/u/markasoftware') markasoftware
 		div.pure-g
 			div.pure-u-1.pure-u-md-1-2.left-panel.flex-center.flex-column.pad-med
 				block leftpanel
