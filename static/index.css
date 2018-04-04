@@ -1,0 +1,77 @@
+/*
+ * BEGIN global
+ */
+
+body {
+	margin: 0;
+	background: #eee;
+	font-family: Open Sans, Verdana, sans-serif;
+}
+* {
+	box-sizing: border-box;
+}
+
+/*
+ * END global
+ */
+/*
+ * BEGIN general classes
+ */
+.pad-small {
+	padding: 1rem;
+}
+.pad-med {
+	padding: 2rem;
+}
+.pad-large {
+	padding: 3.5rem;
+}
+
+/*
+ * BEGIN logo
+ */
+
+header {
+	height: 2.5rem;
+	padding: 0.5rem 0;
+	font-family: Trebuchet MS, sans-serif;
+}
+.logo-large {
+	font-size: 2.5rem;
+}
+.logo-small {
+	font-size: 0.7rem;
+}
+
+/*
+ * END logo
+ * BEGIN panels
+ */
+.margin-center {
+	margin: 0 auto;
+}
+.left-panel {
+	border-right: 1px solid #888;
+}
+
+/*
+ * END panels
+ * BEGIN flex
+ */
+.flex-center {
+	display: flex;
+	align-items: center;
+}
+.flex-column {
+	display: flex;
+	flex-direction: column;
+}
+
+/*
+ * END flex
+ * BEGIN exchanges
+ */
+.exchange {
+	border: 2px solid black;
+	margin-bottom: 2rem;
+}

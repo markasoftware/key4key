@@ -9,10 +9,11 @@ CREATE TABLE circles (
 	reqage INTEGER NOT NULL DEFAULT 9999999999999999,
 	size INTEGER NOT NULL, -- DEFAULT 0,
 	reqsize INTEGER NOT NULL DEFAULT 0,
+	joined INTEGER NOT NULL,
+	reqjoined INTEGER NOT NULL DEFAULT 0,
 	refreshed INTEGER NOT NULL -- DEFAULT 0,
 );
 CREATE TABLE exchanges (
-	meow INTEGER PRIMARY KEY AUTOINCREMENT,
 	-- commenting out references for crappy account deletion logic
 	initiator VARCHAR(255) NOT NULL, --REFERENCES circles(user),
 	acceptor VARCHAR(255) NOT NULL, --REFERENCES circles(user),

@@ -1,0 +1,26 @@
+extends includes/layout
+
+block leftpanel
+	h3 Circle Registration
+	form.pure-form.pure-form-stacked(method='POST')
+		if errorRegister
+			span= errorRegister
+		label(for='user') Reddit Username
+		input#user(name='user')
+		label(for='pw') Circle Password (not Reddit)
+		input#pw(name='pw' type='password')
+		label(for='acpw') Key4Key password (not Reddit)
+		input#acpw(name='acpw' type='password')
+		include includes/csrf
+		button.pure-button.pure-button-primary(type='submit' name='action' value='register') Login
+block rightpanel
+	h3 Circle Login
+	form.pure-form.pure-form-stacked(method='POST')
+		if errorLogin
+			span= errorLogin
+		label(for='user') Reddit Username
+		input#user(name='user')
+		label(for='acpw') Key4Key password (not Reddit)
+		input#acpw(name='acpw' type='password')
+		include includes/csrf
+		button.pure-button.pure-button-primary(type='submit' name='action' value='login') Login

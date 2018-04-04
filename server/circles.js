@@ -13,9 +13,11 @@ const circles = {
 		return !!dbRes.length;
 	},
 	// str name | [ names ] => { }
-	get: user =>
-		db('circles').select('*')
-			.whereIn('user', user.length ? user : [user]),
+	get: async user => {
+		const dbRes = await db('circles').select('*')
+			.whereIn('user', user.length ? user : [user]);
+		return dbRes.length === 1 ? dbRes[0] : dbRes;
+	},
 	// { user, pw, reqkarma, reqage, reqsize } => undef
 	create: acinfo =>
 		db('circles').insert(Object.assign({ refreshed: Date.now() }, acinfo)),
@@ -33,9 +35,9 @@ const circles = {
 		let circleInfo;
 		try {
 			debug(`Getting circle info for ${user}`);
-			circleInfo = await reddit.getCircleInfo(reqBody.user);
+			circleInfo = await reddit.getCircleInfo(user);
 		} catch (e) {
-			if (e.error.error === 404) {
+			if (e.error && e.error.error === 404) {
 				debug('Circle does not exist!');
 				return false;
 			}
@@ -61,6 +63,7 @@ const circles = {
 		debug(`karma: ${karma} age: ${age}`);
 		return {
 			size: circleInfo.size,
+			joined: circleInfo.joined,
 			karma,
 			age,
 		};
@@ -77,7 +80,9 @@ const circles = {
 			db('circles').delete().where('user', user);
 			return;
 		}
-		await circles.update(userInfo);
+		userInfo.refreshed = Date.now();
+		debug(`Updating user with: ${JSON.stringify(userInfo)}`);
+		await circles.update(user, userInfo);
 	},
 	// str user => user | false
 	findPairing: async user => {
@@ -90,15 +95,19 @@ const circles = {
 			.where('reqkarma', '<=', senderInfo.karma)
 			.where('size', '>=', senderInfo.reqsize)
 			.where('reqsize', '<=', senderInfo.size)
+			.where('joined', '>=', senderInfo.reqjoined)
+			.where('reqjoined', '<=', senderInfo.joined)
 			.where('age', '<=', senderInfo.reqage)
 			.where('reqage', '>=', senderInfo.age)
+			// lol
+			.where('user', '!=', user)
 			.whereNotIn('user', function() {
-				this.select('initiator').from('users')
+				this.select('initiator').from('exchanges')
 					.where('acceptor', user);
 			})
 			// we probably don't need both of these, but fuck it
 			.whereNotIn('user', function() {
-				this.select('acceptor').from('users')
+				this.select('acceptor').from('exchanges')
 					.where('initiator', user);
 			})
 			.orderByRaw('RANDOM()')

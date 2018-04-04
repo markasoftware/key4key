@@ -3,49 +3,60 @@ const koaStatic = require('koa-static');
 const koaBody = require('koa-body');
 const koaSession = require('koa-session');
 const koaRouter = require('koa-router');
+const koaViews = require('koa-views');
+const koaCsrf = require('koa-csrf');
 const Debug = require('debug');
 const config = require('../config');
 const circles = require('./circles');
+const exchanges = require('./exchanges');
 const reddit = require('./reddit-api');
 const app = new Koa();
 const router = new koaRouter();
-app.use(koaStatic(`${__dirname}/../client-dist`));
+app.use(koaStatic(`${__dirname}/../static`));
+// so csrf is always available in templates
+app.use((ctx, next) => { ctx.state.csrf = ctx.csrf; return next() });
+app.use(koaViews(`${__dirname}/../views`, { extension: 'pug' }));
 app.use(koaBody());
 app.keys = config.keys;
 app.use(koaSession(app));
+//app.use(new koaCsrf());
 
 
 const isSimpleString = str => /^[\x00-\x7F]{2,255}$/.test(str);
 const isNumber = str => parseInt(str).toString() === str;
-const loggedIn = async (ctx, next) => {
-	if (!ctx.session.user) {
-		ctx.throw(401, 'please login');
-	}
-	await next();
-}
 
-/*
- * request:
- * - user
- * - pw (circle)
- * - acpw (account)
- * 
- * response: HTTP code only
- * =201: ok, and you're logged in
- * =418: You are not eligible for an account
- */
-router.post('/api/circles', async ctx => {
+const updateAccount = async ctx => {
+	const debug = Debug('key4key:updateAccount');
+	debug(`Updating ${ctx.session.user}`);
+	const reqBody = ctx.request.body;
+	if (!isNumber(reqBody.reqkarma) || !isNumber(reqBody.reqage) || !isNumber(reqBody.reqsize) || !isNumber(reqBody.reqjoined)) {
+		debug('reqkarma, reqage, reqsize, reqjoined are all required numbers');
+		return;
+	}
+	debug('performing update');
+	await circles.update(ctx.session.user, {
+		reqkarma: reqBody.reqkarma,
+		reqage: Date.now() / 1000 - reqBody.reqage * 86400,
+		reqsize: reqBody.reqsize,
+		reqjoined: reqBody.reqjoined,
+	});
+};
+
+const register = async ctx => {
 	const debug = Debug('key4key:create');
 	const reqBody = ctx.request.body;
 	if (!isSimpleString(reqBody.user) ||
 		!isSimpleString(reqBody.pw) ||
 		!isSimpleString(reqBody.acpw)) {
 		debug('Not simple strings');
-		ctx.throw(400, 'requires user, pw, and acpw all to be simple strings');
+		ctx.state.errorRegister = 'request format error (user, pw, acpw not simple strings)';
+		return;
 	}
 	const eligible = await circles.checkEligibility(reqBody.user);
 	if (!eligible) {
-		ctx.throw(418, 'account not eligible');
+		debug('Not eligible');
+		ctx.state.errorRegister = 'Account not eligible for registration. Either you do not have a circle, your circle was betrayed, or you are a traitor yourself!';
+		return;
 	}
 	await circles.create(Object.assign({
 		user: reqBody.user,
@@ -53,67 +64,50 @@ router.post('/api/circles', async ctx => {
 		acpw: reqBody.acpw,
 	}, eligible));
 	ctx.session.user = reqBody.user;
-	ctx.status = 201;
+};
+
+const exchange = async ctx => {
+	await exchanges.initiate(ctx.session.user);
+	// TODO: message if it didn't happen or whatever
+};
+
+const render = async (ctx, next) => {
+	const debug = Debug('key4key:render');
+	await next();
+	if (ctx.session.user) {
+		const circle = await circles.get(ctx.session.user);
+		// TODO: maybe don't give them all the properties?
+		Object.assign(ctx.state, circle);
+		const exs = await exchanges.get(ctx.session.user);
+		debug(`Exchanges: ${exchanges}`);
+		ctx.state.exchanges = exs;
+		await ctx.render('dashboard');
+	} else {
+		await ctx.render('index');
+	}
+};
+
+router.post('/', render, async ctx => {
+	switch (ctx.request.body.action) {
+		case 'register':
+			await register(ctx);
+			break;
+		case 'login':
+			await login(ctx);
+			break;
+		case 'changereq':
+			await updateAccount(ctx);
+			break;
+		case 'exchange':
+			await exchange(ctx);
+			break;
+		case 'logout':
+			ctx.session = null;
+			break;
+	}
 });
 
-/*
- * request:
- * - user
- * - acpw
- * 
- * response: HTTP code only
- * =200: you're logged in
- * =401: Auth failed
- * =418: circle key is incorrect or other similar error
- * 
- */
-router.post('/api/login', async ctx => {
-	const debug = Debug('key4key:login');
-	const reqBody = ctx.request.body;
-	if (!isSimpleString(reqBody.user) || !isSimpleString(reqBody.acpw)) {
-		ctx.throw(400, 'make sure user and pw exist and are simple strings');
-	}
-	const authed = await circles.checkAuth(reqBody.user, reqBody.acpw);
-	if (!authed) {
-		ctx.throw(401, 'invalid pw');
-	}
-	ctx.session.user = reqBody.user;
-	ctx.status = 200;
-});
-
-/*
- * request: empty
- * 
- * response: HTTP 200
- */
-router.post('/api/logout', async ctx => {
-	ctx.session = null;
-	ctx.status = 200;
-});
-
-/*
- * request:
- * - reqkarma
- * - reqage
- * - reqsize
- * 
- * response: HTTP code only
- * =200: Done as you requested
- * =303: Already initialized, can't do it again
- */
-router.put('/api/circles', async ctx => {
-	const reqBody = ctx.request.body;
-	if (!isNumber(reqBody.reqkarma) || !isNumber(reqBody.reqage) || !isNumber(reqBody.reqsize)) {
-		ctx.throw(400, 'reqkarma, reqage, and reqsize are all required and need to be numbers');
-	}
-	const curCircle = await circles.get(ctx.session.user);
-	await curCircle.update(ctx.session.user, {
-		reqkarma: reqBody.reqkarma,
-		reqage: reqBody.reqage,
-		reqsize: reqBody.reqsize,
-	});
-	ctx.status = 200;
-});
+router.get('/', render);
 
 // update user info cron
 setInterval(async () => {
@@ -124,12 +118,12 @@ setInterval(async () => {
 		debug('No rows');
 		return;
 	}
-	if (Date.now() - stalestInfo.refreshed * 1000 < config.minRefreshGap) {
+	if (Date.now() - stalestInfo.refreshed < config.minRefreshGap) {
 		debug(`Above min refresh gap of ${config.minRefreshGap}, skipping`);
 		return;
 	}
 	debug('Performing update...');
-	await circles.autoUpdate(stalest);
+	await circles.autoUpdate(stalestInfo.user);
 }, config.refreshInterval);
 
 app.use(router.routes());
