@@ -24,3 +24,15 @@ block rightpanel
 		input#acpw(name='acpw' type='password')
 		include includes/csrf
 		button.pure-button.pure-button-primary(type='submit' name='action' value='login') Login
+block footer
+	h3 What is Key4Key?
+	div
+		p Key4Key is a platform for swapping /r/cirlceoftrust passwords with other users. After creating an account, you can click a button to initiate an exchange, which will give your password to someone else, and give theirs to you. Key4Key has several advanced features to prevent scamming, including:
+		ul
+			li Limits on who you trade with: Set minimum karma, account age, number of circles joined, and circle size.
+			li Automatic banning of anybody who betrays.
+		p Potential upcoming features:
+		ul
+			li OAuth to prevent users from claiming a different user's circle.
+			li Automatic betrayal of anybody who betrays someone else (Deterrence).
+			li Ratelimiting to prevent scammers from rapidly gaining access to many circles.

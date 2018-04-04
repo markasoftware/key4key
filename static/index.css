@@ -4,6 +4,7 @@
 
 body {
 	margin: 0;
+	padding: 1rem 3rem;
 	background: #eee;
 	font-family: Open Sans, Verdana, sans-serif;
 }
