@@ -80,8 +80,10 @@ const login = async ctx => {
 };
 
 const exchange = async ctx => {
-	await exchanges.initiate(ctx.session.user);
-	// TODO: message if it didn't happen or whatever
+	const exchanged = await exchanges.initiate(ctx.session.user);
+	if (!exchanged) {
+		ctx.state.errorMatch = 'No pair found :( Try lowering your limits or trying again later';
+	}
 };
 
 const render = async (ctx, next) => {

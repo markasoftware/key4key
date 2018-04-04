@@ -21,6 +21,7 @@ const exchanges = {
 			// TODO: multi-status
 			status: 'complete',
 		});
+		return true;
 	},
 	// str user => [ { user, pw, created } ]
 	get: user =>

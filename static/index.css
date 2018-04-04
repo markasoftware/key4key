@@ -30,6 +30,10 @@ a {
 	padding: 3.5rem;
 }
 
+.error {
+	color: red;
+}
+
 /*
  * BEGIN logo
  */

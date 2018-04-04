@@ -22,6 +22,8 @@ block leftpanel
 
 block rightpanel
 	h3 Create new match
+	if errorMatch
+		span.error= errorMatch
 	| This will randomly pair you with someone who meets your requirements. You will get their circle password, and they will get yours.
 	form.pure-form.pure-form-stacked(method='POST')
 		button.pure-button.pure-button-primary(name='action' value='exchange' type='submit') Roll the dice

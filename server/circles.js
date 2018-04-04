@@ -77,7 +77,7 @@ const circles = {
 			// they cannot create an account either because we do the
 			// same check there
 			debug('user is not eligible for account, deleting it.');
-			db('circles').delete().where('user', user);
+			await db('circles').delete().where('user', user);
 			return;
 		}
 		userInfo.refreshed = Date.now();

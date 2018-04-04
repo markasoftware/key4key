@@ -4,7 +4,7 @@ block leftpanel
 	h3 Circle Registration
 	form.pure-form.pure-form-stacked(method='POST')
 		if errorRegister
-			span= errorRegister
+			span.error= errorRegister
 		label(for='user') Reddit Username
 		input#user(name='user')
 		label(for='pw') Circle Password (not Reddit)
@@ -17,7 +17,7 @@ block rightpanel
 	h3 Circle Login
 	form.pure-form.pure-form-stacked(method='POST')
 		if errorLogin
-			span= errorLogin
+			span.error= errorLogin
 		label(for='user') Reddit Username
 		input#user(name='user')
 		label(for='acpw') Key4Key password (not Reddit)
