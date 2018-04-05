@@ -52,14 +52,15 @@ const register = async ctx => {
 		ctx.state.errorRegister = 'request format error (user, pw, acpw not simple strings)';
 		return;
 	}
-	const eligible = await circles.checkEligibility(reqBody.user, reqBody.pw);
+	const user = reqBody.user.toLowerCase();
+	const eligible = await circles.checkEligibility(user, reqBody.pw);
 	if (!eligible) {
 		debug('Not eligible');
 		ctx.state.errorRegister = 'Account not eligible for registration. Either you do not have a circle, you entered the incorrect circle password, or you are a traitor!';
 		return;
 	}
 	await circles.create(Object.assign({
-		user: reqBody.user,
+		user: user,
 		pw: reqBody.pw,
 		acpw: 'dummy',
 	}, eligible));
@@ -73,7 +74,8 @@ const login = async ctx => {
 		ctx.state.errorLogin = 'invalid request (user and acpw simple strings';
 		return;
 	}
-	const circlesRes = await circles.get(reqBody.user);
+	const user = reqBody.user.toLowerCase();
+	const circlesRes = await circles.get(user);
 	if (circlesRes.length === 0) {
 		ctx.state.errorLogin = 'Please register first.';
 		return;
@@ -147,7 +149,7 @@ router.get('/callback', async ctx => {
 	};
 	debug(`snooOpts: ${JSON.stringify(snooOpts)}`);
 	const userReddit = await snoowrap.fromAuthCode(snooOpts);
-	const user = await userReddit.getMe().name;
+	const user = await userReddit.getMe().name.toLowerCase();
 	// in render() it is verified that they have an account, so no need to do it again
 	ctx.session.user = user;
 	ctx.redirect(config.baseName);
