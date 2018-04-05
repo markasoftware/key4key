@@ -114,6 +114,8 @@ const render = async (ctx, next) => {
 		const circlesRes = await circles.get(ctx.session.user);
 		if (circlesRes.length === 0) {
 			ctx.session.user = null;
+		} else {
+			await circles.update(ctx.session.user, { viewed: Math.floor(Date.now() / 1000) });
 		}
 	}
 	await next();

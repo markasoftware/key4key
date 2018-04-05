@@ -14,7 +14,10 @@ const circles = {
 	},
 	// { user, pw, reqkarma, reqage, reqsize } => undef
 	create: acinfo =>
-		db('circles').insert(Object.assign({ refreshed: Date.now() }, acinfo)),
+		db('circles').insert(Object.assign({
+			refreshed: Date.now(),
+			reqkarma: 1000000,
+		}, acinfo)),
 	update: (user, stuff) =>
 		db('circles').update(stuff).where('user', user),
 	findStalest: async () => {
