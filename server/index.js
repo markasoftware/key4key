@@ -10,6 +10,7 @@ const config = require('../config');
 const circles = require('./circles');
 const exchanges = require('./exchanges');
 const reddit = require('./reddit-api');
+const snoowrap = require('snoowrap');
 const app = new Koa();
 const router = new koaRouter();
 app.use(koaStatic(`${__dirname}/../static`));
@@ -46,8 +47,7 @@ const register = async ctx => {
 	const debug = Debug('key4key:create');
 	const reqBody = ctx.request.body;
 	if (!isSimpleString(reqBody.user) ||
-		!isSimpleString(reqBody.pw) ||
-		!isSimpleString(reqBody.acpw)) {
+		!isSimpleString(reqBody.pw)) {
 		debug('Not simple strings');
 		ctx.state.errorRegister = 'request format error (user, pw, acpw not simple strings)';
 		return;
@@ -61,35 +61,44 @@ const register = async ctx => {
 	await circles.create(Object.assign({
 		user: reqBody.user,
 		pw: reqBody.pw,
-		acpw: reqBody.acpw,
+		acpw: 'dummy',
 	}, eligible));
-	ctx.session.user = reqBody.user;
+	await login(ctx);
 };
 
 const login = async ctx => {
 	const debug = Debug('key4key:login');
 	const reqBody = ctx.request.body;
-	if (!isSimpleString(reqBody.user) || !isSimpleString(reqBody.acpw)) {
+	if (!isSimpleString(reqBody.user)) {
 		ctx.state.errorLogin = 'invalid request (user and acpw simple strings';
-	}
-	const authed = await circles.checkAcAuth(reqBody.user, reqBody.acpw);
-	if (!authed) {
-		ctx.state.errorLogin = 'authentication failure, check your password';
 		return;
 	}
-	ctx.session.user = reqBody.user;
+	const circlesRes = await circles.get(reqBody.user);
+	if (circlesRes.length === 0) {
+		ctx.state.errorLogin = 'Please register first.';
+		return;
+	}
+	const redirTo = snoowrap.getAuthUrl({
+		clientId: config.webClientId,
+		redirectUri: config.webRedirectUrl,
+		scope: [ 'identity' ],
+		permanent: false,
+	});
+	ctx.redirect(redirTo);
 };
 
-// TODO: move this into DB
-const exchangeTimers = {};
-
 const exchange = async ctx => {
-	if (exchangeTimers[ctx.session.user] > Date.now() - config.exchangeSpacing) {
-		ctx.state.errorMatch = `You must wait ${config.exchangeSpacing / 1000} seconds between exchanges`;
+	const debug = Debug('key4key:exchange');
+	debug(`Exchanging for ${ctx.session.user}`);
+	const exchangesInLastPeriod = await exchanges.findExchangesInPeriod(ctx.session.user, Date.now() / 1000 - config.rateLimitPeriod);
+	debug(`exchanges in period: ${exchangesInLastPeriod}`);
+	if (exchangesInLastPeriod >= config.rateLimitAmount) {
+		debug('Rate limited');
+		ctx.state.errorMatch = `Above rate limit of ${config.rateLimitAmount} per ${config.rateLimitPeriod/60} minutes`;
 		return;
 	}
+	debug('Rate limit bypassed.');
 	const exchanged = await exchanges.initiate(ctx.session.user);
-	exchangeTimers[ctx.session.user] = Date.now();
 	if (!exchanged) {
 		ctx.state.errorMatch = 'No pair found :( Try lowering your limits or trying again later';
 		return;
@@ -106,6 +115,9 @@ const render = async (ctx, next) => {
 		}
 	}
 	await next();
+	if (ctx.headerSent) {
+		return;
+	}
 	if (ctx.session.user) {
 		const circle = await circles.get(ctx.session.user);
 		// TODO: maybe don't give them all the properties?
@@ -118,6 +130,28 @@ const render = async (ctx, next) => {
 		await ctx.render('index');
 	}
 };
+
+router.get('/callback', async ctx => {
+	const debug = Debug('key4key:callback');
+	if (!isSimpleString(ctx.query.code)) {
+		debug('code was not simple string');
+		ctx.throw(400, 'missing code query param');
+	}
+	debug(`code: ${ctx.query.code}`);
+	const snooOpts = {
+		userAgent: 'Key4Key by markasoftware',
+		code: ctx.query.code,
+		clientId: config.webClientId,
+		clientSecret: config.webClientSecret,
+		redirectUri: config.webRedirectUrl,
+	};
+	debug(`snooOpts: ${JSON.stringify(snooOpts)}`);
+	const userReddit = await snoowrap.fromAuthCode(snooOpts);
+	const user = await userReddit.getMe().name;
+	// in render() it is verified that they have an account, so no need to do it again
+	ctx.session.user = user;
+	ctx.redirect(config.baseName);
+});
 
 router.post('/', render, async ctx => {
 	switch (ctx.request.body.action) {

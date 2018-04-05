@@ -41,6 +41,6 @@ block rightpanel
 						if exchange.betrayed
 							em Betrayed
 						else
-							| #{exchange.pw}
+							| "#{exchange.pw}"
 						
 					div.created Created: #{Math.floor((Date.now()/1000-exchange.created)/(60*60))} hours ago

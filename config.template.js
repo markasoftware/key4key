@@ -1,6 +1,10 @@
 module.exports = {
+	webClientId: '54321',
+	webClientSecret: '0987654321',
+	webRedirectUrl: 'http://127.0.0.1:8880/callback',
 	clientId: '12345',
 	clientSecret: '1234567890',
+	baseName: '/',
 	user: 'user',
 	pw: 'password',
 	port: 8880,
@@ -10,6 +14,8 @@ module.exports = {
 	minRefreshGap: 300000,
 	listExchangeLimit: 50,
 	exchangeSpacing: 120000,
+	rateLimitPeriod: 60 * 30,
+	rateLimitAmount: 3,
 	// allow betrayed or size 0 circles to join?
 	allowBetrayed: true,
 	dbPath: '/tmp/key4key.sqlite',

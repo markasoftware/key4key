@@ -1,1 +1,1 @@
-ALTER TABLE circles DROP betrayed;
+ALTER TABLE circles DROP COLUMN betrayed;

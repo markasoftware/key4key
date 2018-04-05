@@ -6,14 +6,6 @@ const db = require('./db');
 // hashing passwords is for amateurs
 
 const circles = {
-	// str name -> str acpw => bool
-	checkAcAuth: async (user, acpw) => {
-		const debug = Debug('key4key:circles:checkAcAuth');
-		const dbRes = await db('circles').select('user')
-			.where('user', user)
-			.where('acpw', acpw);
-		return !!dbRes.length;
-	},
 	// str name | [ names ] => { }
 	get: async user => {
 		const dbRes = await db('circles').select('*')

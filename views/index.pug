@@ -9,8 +9,6 @@ block leftpanel
 		input#user(name='user')
 		label(for='pw') Circle Password (not Reddit). Even if you were betrayed.
 		input#pw(name='pw' type='password')
-		label(for='acpw') Set key4key password
-		input#acpw(name='acpw' type='password')
 		include includes/csrf
 		button.pure-button.pure-button-primary(type='submit' name='action' value='register') Register
 block rightpanel
@@ -20,8 +18,6 @@ block rightpanel
 			span.error= errorLogin
 		label(for='user') Reddit Username
 		input#user(name='user')
-		label(for='acpw') Key4Key password (not Reddit)
-		input#acpw(name='acpw' type='password')
 		include includes/csrf
 		button.pure-button.pure-button-primary(type='submit' name='action' value='login') Login
 block footer

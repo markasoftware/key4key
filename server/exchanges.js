@@ -23,6 +23,19 @@ const exchanges = {
 		});
 		return true;
 	},
+	// str user -> int time (ms) => int number_of_exchanges
+	findExchangesInPeriod: async (user, time) => {
+		const debug = Debug('key4key:exchanges:findExchangesInPeriod');
+		debug(`Exchanges in period for ${user} and ${time}`);
+		const dbRes = await db('exchanges').count('*')
+			.where(function() {
+				this.where('initiator', user)
+					.orWhere('acceptor', user);
+			})
+			.where('created', '>=', time);
+		debug(JSON.stringify(dbRes));
+		return dbRes[0]['count(*)'];
+	},
 	// str user => [ { user, pw, created } ]
 	get: user =>
 		db('exchanges')
