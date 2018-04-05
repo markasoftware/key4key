@@ -59,7 +59,7 @@ const register = async ctx => {
 		return;
 	}
 	await circles.create(Object.assign({
-		user: reqBody.user.toLowerCase(),
+		user: reqBody.user,
 		pw: reqBody.pw,
 		acpw: 'dummy',
 	}, eligible));
