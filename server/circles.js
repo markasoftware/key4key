@@ -1,6 +1,7 @@
 const Debug = require('debug');
 const config = require('../config');
 const reddit = require('./reddit-api');
+const ips = require('./ips');
 const db = require('./db');
 
 // hashing passwords is for amateurs
@@ -16,7 +17,8 @@ const circles = {
 	create: acinfo =>
 		db('circles').insert(Object.assign({
 			refreshed: Date.now(),
-			reqkarma: 1000000,
+			reqkarma: 100,
+			reqage: Date.now() / 1000 - 100 * 24 * 60,
 		}, acinfo)),
 	update: (user, stuff) =>
 		db('circles').update(stuff).where('user', user),
@@ -32,6 +34,10 @@ const circles = {
 		debug(`Checking eligibility for ${user}`);
 		if (config.blacklist.includes(user)) {
 			debug('blacklisted');
+			return false;
+		}
+		if (await ips.hasAccessedFromBanned(user)) {
+			debug('has accessed from a banned IP');
 			return false;
 		}
 		let circleInfo;

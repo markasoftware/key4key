@@ -17,10 +17,12 @@ module.exports = {
 	rateLimitPeriod: 60 * 30,
 	rateLimitAmount: 3,
 	cookieId: 'thingy::oauth',
+	proxy: false,
 	// allow betrayed or size 0 circles to join?
 	allowBetrayed: true,
 	dbPath: '/tmp/key4key.sqlite',
 	blacklist: ['spez'],
+	ipWhitelist: [ '8.8.8.8' ],
 	// cookie signing keys
 	keys: [ 'correct', 'horse', 'battery', 'staple' ],
 };

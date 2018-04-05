@@ -7,12 +7,14 @@ const koaViews = require('koa-views');
 const koaCsrf = require('koa-csrf');
 const Debug = require('debug');
 const config = require('../config');
+const ips = require('./ips');
 const circles = require('./circles');
 const exchanges = require('./exchanges');
 const reddit = require('./reddit-api');
 const snoowrap = require('snoowrap');
 const app = new Koa();
 const router = new koaRouter();
+app.proxy = config.proxy;
 app.use(koaStatic(`${__dirname}/../static`));
 // so csrf is always available in templates
 app.use((ctx, next) => { ctx.state.csrf = ctx.csrf; return next() });
@@ -53,7 +55,12 @@ const register = async ctx => {
 		return;
 	}
 	const user = reqBody.user.toLowerCase();
-	const eligible = await circles.checkEligibility(user, reqBody.pw);
+	debug(`Joining from IP ${ctx.ip}`);
+	const ipOk = !(await ips.isBanned(ctx.ip));
+	if (!ipOk) {
+		debug('IP is banned');
+	}
+	const eligible = ipOk && await circles.checkEligibility(user, reqBody.pw);
 	if (!eligible) {
 		debug('Not eligible');
 		ctx.state.errorRegister = 'Account not eligible for registration. Either you do not have a circle, you entered the incorrect circle password, or you are a traitor!';
@@ -111,6 +118,7 @@ const render = async (ctx, next) => {
 	const debug = Debug('key4key:render');
 	// make sure account exists, otherwise kick 'em out
 	if (ctx.session.user) {
+		await ips.add(ctx.session.user, ctx.ip);
 		const circlesRes = await circles.get(ctx.session.user);
 		if (circlesRes.length === 0) {
 			ctx.session.user = null;
