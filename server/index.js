@@ -149,7 +149,7 @@ router.get('/callback', async ctx => {
 	};
 	debug(`snooOpts: ${JSON.stringify(snooOpts)}`);
 	const userReddit = await snoowrap.fromAuthCode(snooOpts);
-	const user = await userReddit.getMe().name.toLowerCase();
+	const user = (await userReddit.getMe().name).toLowerCase();
 	// in render() it is verified that they have an account, so no need to do it again
 	ctx.session.user = user;
 	ctx.redirect(config.baseName);
