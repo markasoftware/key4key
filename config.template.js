@@ -16,6 +16,7 @@ module.exports = {
 	exchangeSpacing: 120000,
 	rateLimitPeriod: 60 * 30,
 	rateLimitAmount: 3,
+	cookieId: 'thingy::oauth',
 	// allow betrayed or size 0 circles to join?
 	allowBetrayed: true,
 	dbPath: '/tmp/key4key.sqlite',

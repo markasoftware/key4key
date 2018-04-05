@@ -19,7 +19,7 @@ app.use((ctx, next) => { ctx.state.csrf = ctx.csrf; return next() });
 app.use(koaViews(`${__dirname}/../views`, { extension: 'pug' }));
 app.use(koaBody());
 app.keys = config.keys;
-app.use(koaSession(app));
+app.use(koaSession({ key: config.cookieId }, app));
 //app.use(new koaCsrf());
 
 
