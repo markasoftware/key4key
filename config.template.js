@@ -16,6 +16,7 @@ module.exports = {
 	exchangeSpacing: 120000,
 	rateLimitPeriod: 60 * 30,
 	rateLimitAmount: 3,
+	registrationOpen: true,
 	cookieId: 'thingy::oauth',
 	proxy: false,
 	// allow betrayed or size 0 circles to join?

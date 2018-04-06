@@ -60,6 +60,11 @@ const register = async ctx => {
 	if (!ipOk) {
 		debug('IP is banned');
 	}
+	if (!config.registrationOpen) {
+		debug('registrations closed');
+		ctx.state.errorRegister = 'Registration is temporarily closed. Please try again later!';
+		return;
+	}
 	const eligible = ipOk && await circles.checkEligibility(user, reqBody.pw);
 	if (!eligible) {
 		debug('Not eligible');
