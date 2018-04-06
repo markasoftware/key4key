@@ -36,7 +36,7 @@ block rightpanel
 				div.exchange.pad-small
 					div.user
 						| User:&nbsp;
-						a(href=`https://www.reddit.com/user/${exchange.user}/circle/embed?vote_key=${exchange.pw}`)= exchange.user
+						a(href=`https://www.reddit.com/user/${exchange.user}/circle/embed`)= exchange.user
 					div.pw Password:&nbsp;
 						if exchange.betrayed
 							em Betrayed
