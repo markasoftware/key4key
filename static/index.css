@@ -86,3 +86,11 @@ header a {
 	border: 2px solid black;
 	margin-bottom: 2rem;
 }
+
+/*
+ * END exchanges
+ * BEGIN postmortem
+ */
+section {
+	max-width: 40rem;
+}
